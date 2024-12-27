@@ -833,10 +833,10 @@ void VoiceAssistant::on_audio(const api::VoiceAssistantAudio &msg) {
 
 void VoiceAssistant::on_timer_event(const api::VoiceAssistantTimerEventResponse &msg) {
    ESP_LOGD("main", "Timer Event Received: ID=%s, Type=%d, TotalSeconds=%d, SecondsLeft=%d, IsActive=%d",
-            msg.id.c_str(), msg.event_type, msg.total_seconds, msg.seconds_left, msg.is_active);
+            msg.timer_id.c_str(), msg.event_type, msg.total_seconds, msg.seconds_left, msg.is_active);
 
    Timer timer = {
-       .id = msg.id,
+       .id = msg.timer_id,
        .name = msg.name,
        .total_seconds = msg.total_seconds,
        .seconds_left = msg.seconds_left,
@@ -866,6 +866,7 @@ void VoiceAssistant::on_timer_event(const api::VoiceAssistantTimerEventResponse 
        this->timer_cancelled_trigger_->trigger(timer);
        ESP_LOGD("main", "Cancel Trigger: %s", timer.id);
        this->timers_.erase(timer.id);
+       ESP_LOGD("main", "Cancel Trigger erased: %s", timer.id);
        break;
      case api::enums::VOICE_ASSISTANT_TIMER_FINISHED:
        this->timer_finished_trigger_->trigger(timer);
