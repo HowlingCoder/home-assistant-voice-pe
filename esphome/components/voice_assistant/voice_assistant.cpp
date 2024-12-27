@@ -832,8 +832,8 @@ void VoiceAssistant::on_audio(const api::VoiceAssistantAudio &msg) {
 }
 
 void VoiceAssistant::on_timer_event(const api::VoiceAssistantTimerEventResponse &msg) {
-   ESP_LOGD("main", "Timer Event Received: ID=%s, Type=%d, TotalSeconds=%d, SecondsLeft=%d, IsActive=%d",
-            msg.timer_id.c_str(), msg.event_type, msg.total_seconds, msg.seconds_left, msg.is_active);
+   ESP_LOGD("main", "Timer Event Received: ID=%s, ID=%s, TotalSeconds=%d, SecondsLeft=%d, IsActive=%d",
+            msg.timer_id.c_str(), msg.timer_id, msg.total_seconds, msg.seconds_left, msg.is_active);
 
    Timer timer = {
        .id = msg.timer_id,
@@ -846,7 +846,7 @@ void VoiceAssistant::on_timer_event(const api::VoiceAssistantTimerEventResponse 
    ESP_LOGD("main", "Before Updating Timers Map:");
    for (const auto &pair : this->timers_) {
      const auto &t = pair.second;
-     ESP_LOGD("main", "Timer ID: %s, Name: %s, Total Seconds: %d, Seconds Left: %d, Is Active: %d",
+     ESP_LOGD("main", ">> Timer ID: %s, Name: %s, Total Seconds: %d, Seconds Left: %d, Is Active: %d",
               t.id.c_str(), t.name.c_str(), t.total_seconds, t.seconds_left, t.is_active);
    }
 
@@ -866,7 +866,7 @@ void VoiceAssistant::on_timer_event(const api::VoiceAssistantTimerEventResponse 
        this->timer_cancelled_trigger_->trigger(timer);
        ESP_LOGD("main", "Cancel Trigger: %s", timer.id);
        this->timers_.erase(timer.id);
-       ESP_LOGD("main", "Cancel Trigger erased: %s", timer.id);
+       ESP_LOGD("main", "Cancel Trigger erased: %s", timer.id.c_str());
        break;
      case api::enums::VOICE_ASSISTANT_TIMER_FINISHED:
        this->timer_finished_trigger_->trigger(timer);
@@ -877,7 +877,7 @@ void VoiceAssistant::on_timer_event(const api::VoiceAssistantTimerEventResponse 
    ESP_LOGD("main", "After Processing Timer Event:");
    for (const auto &pair : this->timers_) {
      const auto &t = pair.second;
-     ESP_LOGD("main", "Timer ID: %s, Name: %s, Total Seconds: %d, Seconds Left: %d, Is Active: %d",
+     ESP_LOGD("main", ">> Timer ID: %s, Name: %s, Total Seconds: %d, Seconds Left: %d, Is Active: %d",
               t.id.c_str(), t.name.c_str(), t.total_seconds, t.seconds_left, t.is_active);
    }
 

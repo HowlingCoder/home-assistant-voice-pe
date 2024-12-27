@@ -246,7 +246,6 @@ class VoiceAssistant : public Component {
 
   api::APIConnection *api_client_{nullptr};
 
-  std::unordered_map<std::string, Timer> timers_;
   void timer_tick_();
   Trigger<Timer> *timer_started_trigger_ = new Trigger<Timer>();
   Trigger<Timer> *timer_finished_trigger_ = new Trigger<Timer>();
@@ -315,6 +314,7 @@ template<typename... Ts> class StartAction : public Action<Ts...>, public Parent
   TEMPLATABLE_VALUE(std::string, wake_word);
 
  public:
+  std::unordered_map<std::string, Timer> timers_;
   void play(Ts... x) override {
     this->parent_->set_wake_word(this->wake_word_.value(x...));
     this->parent_->request_start(false, this->silence_detection_);
