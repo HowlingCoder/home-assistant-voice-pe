@@ -881,6 +881,7 @@ void VoiceAssistant::on_timer_event(const api::VoiceAssistantTimerEventResponse 
      this->timer_tick_running_ = false;
      ESP_LOGD(TAG, "Are the timer ticks running?: %d", this->timer_tick_running_);
    } else if (!this->timer_tick_running_) {
+     ESP_LOGD(TAG, "Timer ticks are not running. Starting...");
      this->set_interval("timer-event", 1000, [this]() { this->timer_tick_(); });
      this->timer_tick_running_ = true;
    }
@@ -888,10 +889,12 @@ void VoiceAssistant::on_timer_event(const api::VoiceAssistantTimerEventResponse 
 
 
 void VoiceAssistant::timer_tick_() {
+     ESP_LOGD(TAG, "Timer ticks...");
   std::vector<Timer> res;
   res.reserve(this->timers_.size());
   for (auto &pair : this->timers_) {
     auto &timer = pair.second;
+     ESP_LOGD(TAG, "Timer ticks... %s", timer.to_string());
     if (timer.is_active && timer.seconds_left > 0) {
       timer.seconds_left--;
     }
