@@ -857,21 +857,29 @@ void VoiceAssistant::on_timer_event(const api::VoiceAssistantTimerEventResponse 
        this->timer_updated_trigger_->trigger(timer);
        break;
      case api::enums::VOICE_ASSISTANT_TIMER_CANCELLED:
-       this->timer_cancelled_trigger_->trigger(timer);
-       ESP_LOGD("main", "Cancel Trigger: %s", timer.id);
-       this->timers_.erase(timer.id);
-       ESP_LOGD("main", "Cancel Trigger erased: %s", timer.id.c_str());
-       break;
+      ESP_LOGD(TAG, "Before cancellation - Number of timers: %d", this->timers_.size());
+      ESP_LOGD(TAG, "Attempting to cancel timer with ID: '%s'", timer.id.c_str());
+      
+      // Print all current timer IDs
+      for (const auto& t : this->timers_) {
+        ESP_LOGD(TAG, "Existing timer ID: '%s'", t.first.c_str());
+      }
+      
+      this->timer_cancelled_trigger_->trigger(timer);
+      this->timers_.erase(timer.id);
+      
+      ESP_LOGD(TAG, "After cancellation - Number of timers: %d", this->timers_.size());
+      break;
      case api::enums::VOICE_ASSISTANT_TIMER_FINISHED:
        this->timer_finished_trigger_->trigger(timer);
        this->timers_.erase(timer.id);
        break;
    }
 
-   ESP_LOGD(TAG, "IS EMPTY? %d", this->timers_.empty());
    if (this->timers_.empty()) {
      this->cancel_interval("timer-event");
      this->timer_tick_running_ = false;
+     ESP_LOGD(TAG, "Are the timer ticks running?: %d", this->timers_.timer_tick_running_size());
    } else if (!this->timer_tick_running_) {
      this->set_interval("timer-event", 1000, [this]() { this->timer_tick_(); });
      this->timer_tick_running_ = true;
