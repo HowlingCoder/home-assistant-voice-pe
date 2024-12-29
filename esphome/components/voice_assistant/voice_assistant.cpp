@@ -879,7 +879,7 @@ void VoiceAssistant::on_timer_event(const api::VoiceAssistantTimerEventResponse 
    if (this->timers_.empty()) {
      this->cancel_interval("timer-event");
      this->timer_tick_running_ = false;
-     ESP_LOGD(TAG, "Are the timer ticks running?: %d", this->timers_.timer_tick_running_.size());
+     ESP_LOGD(TAG, "Are the timer ticks running?: %d", this->timer_tick_running_);
    } else if (!this->timer_tick_running_) {
      this->set_interval("timer-event", 1000, [this]() { this->timer_tick_(); });
      this->timer_tick_running_ = true;
