@@ -836,24 +836,18 @@ void VoiceAssistant::on_timer_event(const api::VoiceAssistantTimerEventResponse 
             msg.timer_id.c_str(), msg.timer_id, msg.total_seconds, msg.seconds_left, msg.is_active);
 
    Timer timer = {
-       .id = msg.timer_id,
+       .id = msg.timer_id.c_str(),
        .name = msg.name,
        .total_seconds = msg.total_seconds,
        .seconds_left = msg.seconds_left,
        .is_active = msg.is_active,
    };
 
-   ESP_LOGD("main", "Before Updating Timers Map:");
-   for (const auto &pair : this->timers_) {
-     const auto &t = pair.second;
-     ESP_LOGD("main", ">> Timer ID: %s, Name: %s, Total Seconds: %d, Seconds Left: %d, Is Active: %d",
-              t.id.c_str(), t.name.c_str(), t.total_seconds, t.seconds_left, t.is_active);
-   }
-
    this->timers_[timer.id] = timer;
+   ESP_LOGD(TAG, "SELECTED TIMER WAS  %s", this->timers_[timer.id].to_string().c_str());
    ESP_LOGD(TAG, "Timer Event Processed");
    ESP_LOGD(TAG, "  Type: %" PRId32, msg.event_type);
-   ESP_LOGD(TAG, "  %s", timer.to_string().c_str());
+   ESP_LOGD(TAG, "DEFINED TIMER  %s", timer.to_string().c_str());
 
    switch (msg.event_type) {
      case api::enums::VOICE_ASSISTANT_TIMER_STARTED:
@@ -874,13 +868,7 @@ void VoiceAssistant::on_timer_event(const api::VoiceAssistantTimerEventResponse 
        break;
    }
 
-   ESP_LOGD("main", "After Processing Timer Event:");
-   for (const auto &pair : this->timers_) {
-     const auto &t = pair.second;
-     ESP_LOGD("main", ">> Timer ID: %s, Name: %s, Total Seconds: %d, Seconds Left: %d, Is Active: %d",
-              t.id.c_str(), t.name.c_str(), t.total_seconds, t.seconds_left, t.is_active);
-   }
-
+   ESP_LOGD(TAG, "IS EMPTY? %d", this->timers_.empty());
    if (this->timers_.empty()) {
      this->cancel_interval("timer-event");
      this->timer_tick_running_ = false;
