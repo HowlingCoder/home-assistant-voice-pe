@@ -875,7 +875,9 @@ void VoiceAssistant::timer_tick_() {
   res.reserve(this->timers_.size());
   for (auto &pair : this->timers_) {
     auto &timer = pair.second;
+    ESP_LOGD(TAG, "Timer ticks... %s", timer.to_string());
     if (timer.is_active && timer.seconds_left > 0) {
+      ESP_LOGD(TAG, "IF... %d %d", timer.is_active, timer.seconds_left > 0);
       timer.seconds_left--;
     }
     res.push_back(timer);
