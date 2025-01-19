@@ -832,69 +832,49 @@ void VoiceAssistant::on_audio(const api::VoiceAssistantAudio &msg) {
 }
 
 void VoiceAssistant::on_timer_event(const api::VoiceAssistantTimerEventResponse &msg) {
-   ESP_LOGD("main", "Timer Event Received: ID=%s, ID=%s, TotalSeconds=%d, SecondsLeft=%d, IsActive=%d",
-            msg.timer_id.c_str(), msg.timer_id, msg.total_seconds, msg.seconds_left, msg.is_active);
+  Timer timer = {
+      .id = msg.timer_id,
+      .name = msg.name,
+      .total_seconds = msg.total_seconds,
+      .seconds_left = msg.seconds_left,
+      .is_active = msg.is_active,
+  };
+  this->timers_[timer.id] = timer;
+  ESP_LOGD(TAG, "Timer Event");
+  ESP_LOGD(TAG, "  Type: %" PRId32, msg.event_type);
+  ESP_LOGD(TAG, "  %s", timer.to_string().c_str());
 
-   Timer timer = {
-       .id = msg.timer_id.c_str(),
-       .name = msg.name,
-       .total_seconds = msg.total_seconds,
-       .seconds_left = msg.seconds_left,
-       .is_active = msg.is_active,
-   };
-
-   this->timers_[timer.id] = timer;
-   ESP_LOGD(TAG, "SELECTED TIMER WAS  %s", this->timers_[timer.id].to_string().c_str());
-   ESP_LOGD(TAG, "Timer Event Processed");
-   ESP_LOGD(TAG, "  Type: %" PRId32, msg.event_type);
-   ESP_LOGD(TAG, "DEFINED TIMER  %s", timer.to_string().c_str());
-
-   switch (msg.event_type) {
-     case api::enums::VOICE_ASSISTANT_TIMER_STARTED:
-       this->timer_started_trigger_->trigger(timer);
-       break;
-     case api::enums::VOICE_ASSISTANT_TIMER_UPDATED:
-       this->timer_updated_trigger_->trigger(timer);
-       break;
-     case api::enums::VOICE_ASSISTANT_TIMER_CANCELLED:
-      ESP_LOGD(TAG, "Before cancellation - Number of timers: %d", this->timers_.size());
-      ESP_LOGD(TAG, "Attempting to cancel timer with ID: '%s'", timer.id.c_str());
-      
-      // Print all current timer IDs
-      for (const auto& t : this->timers_) {
-        ESP_LOGD(TAG, "Existing timer ID: '%s'", t.first.c_str());
-      }
-      
+  switch (msg.event_type) {
+    case api::enums::VOICE_ASSISTANT_TIMER_STARTED:
+      this->timer_started_trigger_->trigger(timer);
+      break;
+    case api::enums::VOICE_ASSISTANT_TIMER_UPDATED:
+      this->timer_updated_trigger_->trigger(timer);
+      break;
+    case api::enums::VOICE_ASSISTANT_TIMER_CANCELLED:
       this->timer_cancelled_trigger_->trigger(timer);
       this->timers_.erase(timer.id);
-      
-      ESP_LOGD(TAG, "After cancellation - Number of timers: %d", this->timers_.size());
       break;
-     case api::enums::VOICE_ASSISTANT_TIMER_FINISHED:
-       this->timer_finished_trigger_->trigger(timer);
-       this->timers_.erase(timer.id);
-       break;
-   }
+    case api::enums::VOICE_ASSISTANT_TIMER_FINISHED:
+      this->timer_finished_trigger_->trigger(timer);
+      this->timers_.erase(timer.id);
+      break;
+  }
 
-   if (this->timers_.empty()) {
-     this->cancel_interval("timer-event");
-     this->timer_tick_running_ = false;
-     ESP_LOGD(TAG, "Are the timer ticks running?: %d", this->timer_tick_running_);
-   } else if (!this->timer_tick_running_) {
-     ESP_LOGD(TAG, "Timer ticks are not running. Starting...");
-     this->set_interval("timer-event", 1000, [this]() { this->timer_tick_(); });
-     this->timer_tick_running_ = true;
-   }
+  if (this->timers_.empty()) {
+    this->cancel_interval("timer-event");
+    this->timer_tick_running_ = false;
+  } else if (!this->timer_tick_running_) {
+    this->set_interval("timer-event", 1000, [this]() { this->timer_tick_(); });
+    this->timer_tick_running_ = true;
+  }
 }
 
-
 void VoiceAssistant::timer_tick_() {
-     ESP_LOGD(TAG, "Timer ticks...");
   std::vector<Timer> res;
   res.reserve(this->timers_.size());
   for (auto &pair : this->timers_) {
     auto &timer = pair.second;
-     ESP_LOGD(TAG, "Timer ticks... %s", timer.to_string());
     if (timer.is_active && timer.seconds_left > 0) {
       timer.seconds_left--;
     }
